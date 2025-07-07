@@ -114,6 +114,7 @@ const TodoApp = () => {
         onTaskAdded={handleTaskAdded}
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
+        tasks={tasks}
       />
       <TaskList
         tasks={tasks}

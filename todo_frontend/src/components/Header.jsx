@@ -1,8 +1,9 @@
 import React from "react";
+import logo from "../assets/logo.png";
 
 const Header = () => (
   <div className="mb-6 text-center">
-    <img src="/img/logo.png" alt="avatar" className="w-10 mx-auto mb-2 rounded-lg" />
+    <img src={logo} alt="avatar" className="w-10 mx-auto mb-2 rounded-lg" />
     <h1 className="text-3xl font-bold mb-2 flex items-center justify-center gap-2">
       <span role="img" aria-label="note">
         📝
