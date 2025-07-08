@@ -3,34 +3,20 @@ import React, { useState, useEffect } from "react";
 import { localStorageService } from "../services/localStorageService";
 import dayjs from "dayjs";
 
-const TaskInput = ({ onTaskAdded, selectedDate, setSelectedDate, tasks }) => {
+const TaskInput = ({
+  onTaskAdded,
+  selectedDate,
+  setSelectedDate,
+  tasks,
+  reminderTasks = [],
+}) => {
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
-  const [hasUncompletedPreviousTasks, setHasUncompletedPreviousTasks] =
-    useState(false);
-
-  // Kiểm tra xem có nhiệm vụ chưa hoàn thành từ ngày hôm trước không
-  const checkUncompletedPreviousTasks = () => {
-    const allTasks = tasks || localStorageService.getAllTasks();
-    const yesterday = dayjs().subtract(1, "day").format("YYYY-MM-DD");
-
-    const uncompletedTasks = allTasks.filter(
-      (task) => !task.completed && dayjs(task.due_date).isBefore(dayjs(), "day")
-    );
-
-    setHasUncompletedPreviousTasks(uncompletedTasks.length > 0);
-  };
-
-  useEffect(() => {
-    checkUncompletedPreviousTasks();
-  }, [tasks]); // Kiểm tra lại khi tasks thay đổi
 
   const handleAddTask = () => {
-    if (!title.trim() || loading || hasUncompletedPreviousTasks) return;
-
+    if (!title.trim() || loading) return;
     setLoading(true);
     try {
-      // await axios.post("http://localhost:8000/api/tasks", { title });
       localStorageService.addTask({
         title: title.trim(),
         due_date: selectedDate,
@@ -48,45 +34,41 @@ const TaskInput = ({ onTaskAdded, selectedDate, setSelectedDate, tasks }) => {
 
   return (
     <div className="space-y-3">
-      {hasUncompletedPreviousTasks && (
-        <div className="p-3 bg-red-100 border border-red-300 rounded-lg">
-          <p className="text-red-700 text-sm font-medium">
-            ⚠️ Bạn có nhiệm vụ chưa hoàn thành từ ngày hôm trước. Vui lòng hoàn
-            thành chúng trước khi thêm nhiệm vụ mới.
-          </p>
+      {reminderTasks.length > 0 && (
+        <div className="p-2 bg-yellow-100 border border-yellow-300 rounded-lg">
+          {reminderTasks.map((task) => (
+            <p key={task.id} className="text-yellow-700 text-sm font-medium">
+              ⚠️ Bạn còn nhiệm vụ: "{task.title}" ngày{" "}
+              {dayjs(task.due_date || task.created_at).format("D/M/YYYY")} chưa
+              hoàn thành
+            </p>
+          ))}
         </div>
       )}
-
       <div className="flex flex-col sm:flex-row gap-2">
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Nhập công việc ......"
-          className={`flex-grow p-2 border rounded-lg focus:ring-2 focus:ring-blue-400 ${
-            hasUncompletedPreviousTasks ? "bg-gray-100 cursor-not-allowed" : ""
-          }`}
-          disabled={hasUncompletedPreviousTasks}
+          className="flex-grow p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
         />
         <input
           type="date"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
-          className={`p-2 border rounded-lg focus:ring-2 focus:ring-blue-400 ${
-            hasUncompletedPreviousTasks ? "bg-gray-100 cursor-not-allowed" : ""
-          }`}
-          disabled={hasUncompletedPreviousTasks}
+          className="p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
         />
         <button
           className={`w-full sm:w-auto px-4 py-2 rounded-lg text-white ${
-            loading || hasUncompletedPreviousTasks
+            loading
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-blue-500 hover:bg-blue-600"
           }`}
           onClick={handleAddTask}
-          disabled={loading || hasUncompletedPreviousTasks}
+          disabled={loading}
         >
-          {loading ? "Đang thêm..." : hasUncompletedPreviousTasks ? "" : "➕"}
+          {loading ? "Đang thêm..." : "➕"}
         </button>
       </div>
     </div>

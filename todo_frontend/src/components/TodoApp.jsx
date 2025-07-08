@@ -7,12 +7,37 @@ import dayjs from "dayjs";
 const TodoApp = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reminderTasks, setReminderTasks] = useState([]);
+
+  const [selectedDate, setSelectedDate] = useState(() => {
+    return dayjs().format("YYYY-MM-DD");
+  });
+
+  const mergeTasksForToday = (allTasks, todayStr) => {
+    const todayTasks = [];
+    const reminders = [];
+    allTasks.forEach((task) => {
+      const taskDate = dayjs(task.due_date || task.created_at).format(
+        "YYYY-MM-DD"
+      );
+      if (!task.completed && taskDate < todayStr) {
+        todayTasks.push(task);
+        reminders.push(task);
+      } else if (taskDate === todayStr) {
+        todayTasks.push(task);
+      }
+    });
+    return { todayTasks, reminders };
+  };
 
   const fetchTasks = () => {
     setLoading(true);
     try {
-      const tasks = localStorageService.getAllTasks();
-      setTasks(tasks);
+      const allTasks = localStorageService.getAllTasks();
+      const todayStr = selectedDate;
+      const { todayTasks, reminders } = mergeTasksForToday(allTasks, todayStr);
+      setTasks(todayTasks);
+      setReminderTasks(reminders);
     } catch (error) {
       console.log("Lỗi khi tải công việc: ", error);
     } finally {
@@ -22,10 +47,10 @@ const TodoApp = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [selectedDate]);
 
   const handleTaskAdded = () => {
-    fetchTasks(); //cap nhat lai danh sach
+    fetchTasks();
   };
 
   const handleDeleteTask = (id) => {
@@ -35,7 +60,6 @@ const TodoApp = () => {
     if (!confirmDelete) return;
 
     try {
-      // await axios.delete(`http://localhost:8000/api/tasks/${id}`);
       localStorageService.deleteTask(id);
       fetchTasks();
     } catch (error) {
@@ -45,9 +69,6 @@ const TodoApp = () => {
 
   const handleCompleteTask = (id) => {
     try {
-      // await axios.put(`http://localhost:8000/api/tasks/${id}`, {
-      //   completed: true,
-      // });
       localStorageService.updateTask(id, { completed: true });
       fetchTasks();
     } catch (error) {
@@ -65,9 +86,6 @@ const TodoApp = () => {
 
   const handleEditSave = async (id) => {
     try {
-      // await axios.put(`http://localhost:8000/api/tasks/${id}`, {
-      //   title: editTitle,
-      // });
       localStorageService.updateTask(id, { title: editTitle });
       setEditingTask(null);
       setEditTitle("");
@@ -81,10 +99,6 @@ const TodoApp = () => {
     setEditingTask(null);
     setEditTitle("");
   };
-
-  const [selectedDate, setSelectedDate] = useState(() => {
-    return dayjs().format("YYYY-MM-DD");
-  });
 
   const now = dayjs();
   const weekAgo = now.subtract(7, "day");
@@ -115,6 +129,7 @@ const TodoApp = () => {
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
         tasks={tasks}
+        reminderTasks={reminderTasks}
       />
       <TaskList
         tasks={tasks}
@@ -128,6 +143,7 @@ const TodoApp = () => {
         onEditSave={handleEditSave}
         onEditCancel={handleEditCancel}
         selectedDate={selectedDate}
+        reminderTasks={reminderTasks}
       />
     </div>
   );
