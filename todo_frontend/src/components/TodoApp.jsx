@@ -101,27 +101,34 @@ const TodoApp = () => {
   };
 
   const now = dayjs();
-  const weekAgo = now.subtract(7, "day");
+  const startOfMonth = now.startOf("month");
+  const endOfMonth = now.endOf("month");
 
-  const tasksInWeek = tasks.filter((task) =>
-    dayjs(task.created_at).isAfter(weekAgo)
-  );
-  const completedInWeek = tasksInWeek.filter((t) => t.completed).length;
-  const uncompletedInWeek = tasksInWeek.filter((t) => !t.completed).length;
+  const tasksInMonth = tasks.filter((task) => {
+    const created = dayjs(task.created_at);
+    return (
+      created.isAfter(startOfMonth.subtract(1, "day")) &&
+      created.isBefore(endOfMonth.add(1, "day"))
+    );
+  });
+  const completedInMonth = tasksInMonth.filter((t) => t.completed).length;
+  const uncompletedInMonth = tasksInMonth.filter((t) => !t.completed).length;
 
   return (
     <div className="max-w-xl mx-auto mt-10 p-5 bg-gray-100 rounded-xl shadow">
       <div className="mb-4 p-3 rounded-lg shadow text-center bg-white">
-        <h3 className="font-bold mb-2">🤝 Thống kê 7 ngày gần nhất: </h3>
+        <h3 className="font-bold mb-2">
+          🤝 Thống kê tháng {now.format("MM/YYYY")}:
+        </h3>
         <p>
-          Tổng số nhiệm vụ: <b>{tasksInWeek.length}</b>{" "}
+          Tổng số nhiệm vụ: <b>{tasksInMonth.length}</b>
         </p>
         <p>
-          👍 Hoàn thành: <b className="text-green-600">{completedInWeek}</b>{" "}
+          👍 Hoàn thành: <b className="text-green-600">{completedInMonth}</b>
         </p>
         <p>
           👎 Chưa hoàn thành:{" "}
-          <b className="text-red-600">{uncompletedInWeek}</b>{" "}
+          <b className="text-red-600">{uncompletedInMonth}</b>
         </p>
       </div>
       <TaskInput
