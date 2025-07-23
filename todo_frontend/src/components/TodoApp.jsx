@@ -8,6 +8,7 @@ const TodoApp = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reminderTasks, setReminderTasks] = useState([]);
+  const [allTasks, setAllTasks] = useState([]); // Thêm state lưu toàn bộ nhiệm vụ
 
   const [selectedDate, setSelectedDate] = useState(() => {
     return dayjs().format("YYYY-MM-DD");
@@ -33,9 +34,13 @@ const TodoApp = () => {
   const fetchTasks = () => {
     setLoading(true);
     try {
-      const allTasks = localStorageService.getAllTasks();
+      const allTasksData = localStorageService.getAllTasks();
+      setAllTasks(allTasksData); // Lưu toàn bộ nhiệm vụ cho thống kê
       const todayStr = selectedDate;
-      const { todayTasks, reminders } = mergeTasksForToday(allTasks, todayStr);
+      const { todayTasks, reminders } = mergeTasksForToday(
+        allTasksData,
+        todayStr
+      );
       setTasks(todayTasks);
       setReminderTasks(reminders);
     } catch (error) {
@@ -104,7 +109,8 @@ const TodoApp = () => {
   const startOfMonth = now.startOf("month");
   const endOfMonth = now.endOf("month");
 
-  const tasksInMonth = tasks.filter((task) => {
+  // Thống kê dựa trên toàn bộ nhiệm vụ trong tháng
+  const tasksInMonth = allTasks.filter((task) => {
     const created = dayjs(task.created_at);
     return (
       created.isAfter(startOfMonth.subtract(1, "day")) &&
